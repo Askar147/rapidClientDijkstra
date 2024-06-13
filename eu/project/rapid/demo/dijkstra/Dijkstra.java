@@ -298,7 +298,7 @@ public class Dijkstra extends Remoteable {
     }
 
 
-    //FIXME: remove %4 from costs[n] in getCost
+    //FIXME: remove %4 from costs[n%4] in getCost
     private double getCost(byte[] costs, int n) {
         double c = costs[n] & 0xFF; // Convert byte to unsigned
         if (c < lethal_cost_ - 1 || (unknown_ && c == 255)) {
