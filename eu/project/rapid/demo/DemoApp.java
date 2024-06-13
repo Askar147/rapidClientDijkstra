@@ -181,12 +181,6 @@ public class DemoApp {
 //    }
 
     public void testDijkstraLogs(byte[] costs, double start_x, double start_y, double end_x, double end_y, int cycles, float[] potential) {
-
-        System.out.println();
-        System.out.println();
-        log.info("Testing Dijkstra...");
-
-
         try{
             log.warn("===-------------=testDijsktraLOGS INCOMING VALUES: " + cycles + " " + start_x + " " + start_y + " " + end_x + " " + end_y);
             log.warn("costs:");
@@ -194,18 +188,8 @@ public class DemoApp {
             for (int i = 0; i < 3; i++) {
                 log.info(costs[i]);
             }
-
-//            log.error("===-------------=testDijsktraLOGS RESULT BEFORE" + result);
-//            log.error("===-------------=testDijsktraLOGS RESULT BEFORE" + result.result);
-//            log.error("===-------------=testDijsktraLOGS RESULT BEFORE" + result.newPotential);
-//            log.error("===-------------=testDijsktraLOGS RESULT BEFORE" + result.newPotentialIndex);
-
             result = testDijkstra(costs, start_x, start_y, end_x, end_y, cycles, potential);
 
-//            log.error("===-------------=testDijsktraLOGS RESULT AFTER" + result);
-//            log.error("===-------------=testDijsktraLOGS RESULT AFTER" + result.result);
-//            log.error("===-------------=testDijsktraLOGS RESULT AFTER" + result.newPotential);
-//            log.error("===-------------=testDijsktraLOGS RESULT AFTER" + result.newPotentialIndex);
             if (requestDeclined)
                 return;
         } finally {
@@ -224,6 +208,14 @@ public class DemoApp {
         System.out.printf("%12s %15s%n", "Nr.", "Avg. dur. (ms)");
         System.out.printf("%-8s %3d %15.2f%n", "Local", dijkstraLocalNr, dijkstraLocalDur / dijkstraLocalNr / 1000000);
         System.out.printf("%-8s %3d %15.2f%n", "Remote", dijkstraRemoteNr, dijkstraRemoteDur / dijkstraRemoteNr / 1000000);
+        String FILE_PATH = "/home/user/Desktop/Turnaround/file_" + System.currentTimeMillis() + ".txt";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(FILE_PATH, true))) {
+            writer.write(Long.toString(dijkstraLocalNr) + " " + Long.toString((long) (dijkstraLocalDur / dijkstraLocalNr / 1000000)) + " s");
+            writer.newLine(); // Add a new line for each data entry
+        } catch (IOException e) {
+            e.printStackTrace(); // Handle file I/O errors
+        }
+
     }
     private DijkstraResult testDijkstra(byte[] costs, double start_x, double start_y, double end_x, double end_y, int cycles, float[] potential) {
         Dijkstra d = new Dijkstra(dfe);
