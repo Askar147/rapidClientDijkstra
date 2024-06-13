@@ -641,6 +641,7 @@ public class DFE {
 
             Object result = null; // Access it
             try {
+                log.info("----------CALLING EXECUTE LOCALLY-----");
                 // Make sure that the method is accessible
                 long startTime = System.nanoTime();
                 task.m.setAccessible(true);
