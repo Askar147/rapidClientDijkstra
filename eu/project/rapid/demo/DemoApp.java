@@ -329,52 +329,92 @@ public class DemoApp {
         //TODO: REMOVE potential array from method calls
         float[] potential = new float[1];
         int index = 0;
-        while (true) {
+
+        // At the beginning of your main method
+        ArrayList<Long> eventTimes = new ArrayList<>();
 
 
-                // READING
+        // Setup variables for Poisson distribution simulation
+        double lambda = 1; // Average calls per second
+        long simulationTime = 60 * 1000; // 1 minutes in milliseconds
+        long startTime = System.currentTimeMillis();
+        Random random = new Random();
+
+        while (System.currentTimeMillis() - startTime < simulationTime) {
+
+            double nextCall = -Math.log(1 - random.nextDouble()) / lambda;
+            long sleepTime = (long) (nextCall * 1000); // Convert seconds to milliseconds
+            try {
+                Thread.sleep(sleepTime); // Wait for the time until the next call
+            } catch (InterruptedException e) {
+                System.err.println("Simulation interrupted: " + e.getMessage());
+                break; // Exit simulation loop if interrupted
+            }
+
+            // READING
             int numClientData = 200;
-            Random random = new Random();
-            int randomClientIndex = random.nextInt(numClientData);
-
-
+            Random randomIndex = new Random();
+            int randomClientIndex = randomIndex.nextInt(numClientData);
             byte[] readCosts = new byte[416 * 160]; // The same size as the original costs array
             String inputCostsDir = "/home/user/Desktop/Costs/costs" + randomClientIndex + ".dat";
             String inputParamDir = "/home/user/Desktop/Costs/costs_param" + randomClientIndex + ".dat";
-                try (FileInputStream fis = new FileInputStream(inputCostsDir);
-                     BufferedInputStream bis = new BufferedInputStream(fis)) {
-                    int totalBytesRead = bis.read(readCosts);
-                    System.out.println("Read " + totalBytesRead + " bytes from costs.dat");
-                } catch (IOException e) {
-                    System.out.println("An error occurred while reading costs from file: " + e.getMessage());
-                    e.printStackTrace();
-                }
 
-                double start_x_FromFile, start_y_FromFile, end_x_FromFile, end_y_FromFile;
-                int cycles_FromFile;
+            try (FileInputStream fis = new FileInputStream(inputCostsDir);
+                 BufferedInputStream bis = new BufferedInputStream(fis)) {
+                int totalBytesRead = bis.read(readCosts);
+                System.out.println("Read " + totalBytesRead + " bytes from costs.dat");
+            } catch (IOException e) {
+                System.out.println("An error occurred while reading costs from file: " + e.getMessage());
+                e.printStackTrace();
+            }
 
-                try (FileInputStream fis = new FileInputStream(inputParamDir);
-                     DataInputStream dis = new DataInputStream(fis)) {
-                    // Reading the parameters from file
-                    start_x_FromFile = dis.readDouble();
-                    start_y_FromFile = dis.readDouble();
-                    end_x_FromFile = dis.readDouble();
-                    end_y_FromFile = dis.readDouble();
-                    cycles_FromFile = dis.readInt();
-                    System.out.println("Read start_x: " + start_x_FromFile);
-                    System.out.println("Read start_y: " + start_y_FromFile);
-                    System.out.println("Read end_x: " + end_x_FromFile);
-                    System.out.println("Read end_y: " + end_y_FromFile);
-                    System.out.println("Read cycles: " + cycles_FromFile);
+            double start_x_FromFile, start_y_FromFile, end_x_FromFile, end_y_FromFile;
+            int cycles_FromFile;
 
-                    //FIXME: this is just testDijkstraLogs for reading (xz kak eshe), krch drugoi testDijkstraLogs ne nado uzat kogda etot est
-                    demo.testDijkstraLogs(readCosts, start_x_FromFile, start_y_FromFile, end_x_FromFile, end_y_FromFile, cycles_FromFile, potential);
+            try (FileInputStream fis = new FileInputStream(inputParamDir);
+                 DataInputStream dis = new DataInputStream(fis)) {
+                // Reading the parameters from file
+                start_x_FromFile = dis.readDouble();
+                start_y_FromFile = dis.readDouble();
+                end_x_FromFile = dis.readDouble();
+                end_y_FromFile = dis.readDouble();
+                cycles_FromFile = dis.readInt();
+                System.out.println("Read start_x: " + start_x_FromFile);
+                System.out.println("Read start_y: " + start_y_FromFile);
+                System.out.println("Read end_x: " + end_x_FromFile);
+                System.out.println("Read end_y: " + end_y_FromFile);
+                System.out.println("Read cycles: " + cycles_FromFile);
 
-                } catch (IOException e) {
-                    System.err.println("IOException while reading parameters from file: " + e.getMessage());
-                    e.printStackTrace();
-                }
+
+                // Inside your simulation loop, right before you call testDijkstraLogs
+                long eventTime = System.currentTimeMillis();
+                eventTimes.add(eventTime);
+
+                //FIXME: this is just testDijkstraLogs for reading, krch drugoi testDijkstraLogs ne nado uzat kogda etot est
+                demo.testDijkstraLogs(readCosts, start_x_FromFile, start_y_FromFile, end_x_FromFile, end_y_FromFile, cycles_FromFile, potential);
+                System.out.println("Simulating call to testDijkstraLogs at index " + index);
+
+            } catch (IOException e) {
+                System.err.println("IOException while reading parameters from file: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
+
+        ArrayList<Double> interarrivalTimes = new ArrayList<>();
+        for (int i = 1; i < eventTimes.size(); i++) {
+            // Convert milliseconds to seconds
+            double interval = (eventTimes.get(i) - eventTimes.get(i - 1)) / 1000.0;
+            interarrivalTimes.add(interval);
+        }
+
+        double sum = 0;
+        for (Double interval : interarrivalTimes) {
+            sum += interval;
+        }
+        double observedMean = sum / interarrivalTimes.size();
+
+        System.out.println("The observed mean should be close to 1 : " + observedMean);
+
         demo.dfe.destroy();
         log.warn("DEMOAPP: OOPS! I'm dead:(");
 
