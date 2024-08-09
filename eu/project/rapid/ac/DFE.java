@@ -294,8 +294,8 @@ public class DFE {
 
 
 //            // FIXME: Disable this on release version.
-//            new StreamThread(runAcRm.getInputStream()).start();
-//            new StreamThread(runAcRm.getErrorStream()).start();
+            new StreamThread(runAcRm.getInputStream()).start();
+            new StreamThread(runAcRm.getErrorStream()).start();
 
             log.info("AC_RM started");
 
