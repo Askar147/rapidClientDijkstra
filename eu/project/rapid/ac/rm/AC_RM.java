@@ -138,6 +138,7 @@ public class AC_RM {
             log.info("Registering with DS " + config.getDsIp() + ":" + config.getDsPort());
             try {
                 dsSocket = new Socket();
+                dsSocket.setKeepAlive(true);
                 dsSocket.connect(new InetSocketAddress(config.getDsIp(), config.getDsPort()), 3000);
                 log.info("Connected with DS");
                 connectedWithDs = true;
@@ -163,6 +164,8 @@ public class AC_RM {
                     log.info("Registering as NEW with ID:" + myId + " with the DS...");
                     dsOut.writeByte(RapidMessages.AC_REGISTER_NEW_DS);
                     log.info("Sending my ID: " + myId);
+                    
+                    
                     dsOut.writeLong(myId);
 
                     log.info("Sending VM details...");
