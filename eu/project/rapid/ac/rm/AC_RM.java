@@ -163,9 +163,8 @@ public class AC_RM {
                 } else { // Register and ask for the previous VM
                     log.info("Registering as NEW with ID:" + myId + " with the DS...");
                     dsOut.writeByte(RapidMessages.AC_REGISTER_NEW_DS);
+
                     log.info("Sending my ID: " + myId);
-                    
-                    
                     dsOut.writeLong(myId);
 
                     log.info("Sending VM details...");
@@ -184,6 +183,28 @@ public class AC_RM {
                 // Receive message format: status (java byte), userId (java long), ipList (java object)
                 byte status = dsIn.readByte();
                 log.info("Return Status from DS: " + (status == RapidMessages.OK ? "OK" : "ERROR"));
+                log.info("Return Status from DS: " + (status == RapidMessages.PING ? "PING" : "ERROR"));
+
+                while (status == RapidMessages.PING){
+                    log.info("Sending my ID AGAIN FOR QUEUE: " + myId);
+                    dsOut.writeLong(myId);
+
+                    log.info("Sending VM details... AGAIN FOR QUEUE ");
+                    // FIXME: should not use static values here.
+                    dsOut.writeInt(vmNrVCPUs); // send vcpuNum as int
+                    dsOut.writeInt(vmMemSize); // send memSize as int
+                    dsOut.writeInt(vmNrGpuCores); // send gpuCores as int
+                    //send task details from config.properties file
+                    dsOut.writeUTF(config.getDeadlineTimestamp());
+                    dsOut.writeLong(config.getCycles());
+
+                    dsOut.flush();
+
+                    status = dsIn.readByte();
+                    log.info("Return Status from DS IN QUEUE WHILE: " + (status == RapidMessages.OK ? "OK" : "ERROR"));
+                    log.info("Return Status from DS IN QUEUE WHILE: " + (status == RapidMessages.PING ? "PING" : "ERROR"));
+                }
+
                 if (status == RapidMessages.OK) {
                     myId = dsIn.readLong();
                     log.info("New userId is: " + myId);
